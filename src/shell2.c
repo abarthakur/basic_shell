@@ -33,17 +33,19 @@ int main(void){
     init_queue(&q,4);
     printf("%d  %p\n",q.tail,q.history);
 
-    printQueue(&q);
-    enqueue(&q,"1");
-    printQueue(&q);
-    enqueue(&q,"2");
-    printQueue(&q);
-    enqueue(&q,"3");
-    printQueue(&q);
-    enqueue(&q,"4");
-    printQueue(&q);
-    enqueue(&q,"5");
-    printQueue(&q);
+    // printQueue(&q); //no output
+    // enqueue(&q,"1");
+    // printQueue(&q);
+    // enqueue(&q,"2");
+    // printQueue(&q);
+    // enqueue(&q,"3");
+    // printQueue(&q);
+    // enqueue(&q,"4");
+    // printQueue(&q);
+    // enqueue(&q,"5");
+    // printQueue(&q);
+    // enqueue(&q,"6");
+    // printQueue(&q);
 
 
 
@@ -278,7 +280,10 @@ void printQueue(historyQueue *queue){
     if (queue->tail==-1){
         return ;
     }
-    while( ((queue->head +i)%(queue->q_size))!= (queue->tail)){
+
+    int start=1;
+    while( start==1 ||(((queue->head +i)%(queue->q_size))!= (queue->tail +1)%(queue->q_size))){
+            start=0;
             printf("%d . %s\n",i,*(queue->history+(queue->head +i)%(queue->q_size)));
             i++;
         }
