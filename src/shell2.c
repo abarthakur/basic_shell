@@ -31,14 +31,19 @@ int main(void){
 
     historyQueue q;
     init_queue(&q,4);
-    // printf("%d  %p\n",q.tail,q.history);
+    printf("%d  %p\n",q.tail,q.history);
 
-    // printQueue(&q);
-    // enqueue(&q,"1");
-    // enqueue(&q,"2");
-    // enqueue(&q,"3");
-    // enqueue(&q,"4");
-    // enqueue(&q,"5");
+    printQueue(&q);
+    enqueue(&q,"1");
+    printQueue(&q);
+    enqueue(&q,"2");
+    printQueue(&q);
+    enqueue(&q,"3");
+    printQueue(&q);
+    enqueue(&q,"4");
+    printQueue(&q);
+    enqueue(&q,"5");
+    printQueue(&q);
 
 
 
@@ -250,12 +255,12 @@ void enqueue(historyQueue *queue, char *newCommand){
     if((queue->tail +1)%(queue->q_size)==queue->head && queue->tail!=-1){ //boundary condition
         dequeue(queue,NULL);
     }
-    printf("a\n");
+    // printf("a\n");
     queue->tail = (queue->tail + 1)%(queue->q_size);
-    printf("%d\n",queue->tail);
+    // printf("%d\n",queue->tail);
     //maxsize check here
-    // char *dest= *(queue->history + queue->tail);
-    char *dest=malloc(20*sizeof(char));
+    char *dest= *(queue->history + queue->tail);
+    // char *dest=malloc(20*sizeof(char));
     strcpy(dest,newCommand);
 }
 
@@ -269,6 +274,7 @@ void dequeue(historyQueue *queue,char *buf){
 
 void printQueue(historyQueue *queue){
     int i;
+    printf("History :\n");
     if (queue->tail==-1){
         return ;
     }
