@@ -188,22 +188,22 @@ void init_queue(historyQueue *queue, int n){
     
     queue->q_size=n;
     queue->head=0;
-    // queue->tail=-1;
-    queue->tail=3;
+    queue->tail=-1;
+    // queue->tail=3;
     queue->commandSize=100;
     queue->history=(char **) malloc(n*sizeof(char *));
-    printf("got here %d\n",n);
-    for (i=0;i++;i<n){
-        printf("aaa\n");
-        printf("%p\n",*(queue->history+i));
-        *((queue->history)+i)=malloc ((queue->commandSize)*sizeof(char));
-        printf("%p\n",*(queue->history+i));
-        // (*((queue->history)+i))[0]='\0';
+    // printf("got here %d\n",n);
+    for (i=0;i<n;i++){
+        // printf("aaa\n");
+        // printf("%p\n",*(queue->history+i));
+        *((queue->history)+i)=(char *)malloc ((queue->commandSize)*sizeof(char));
+        // printf("%p\n",*(queue->history+i));
+        (*((queue->history)+i))[0]='\0';
 
-        (*((queue->history)+i))[0]='a';
-        (*((queue->history)+i))[1]='\0';
+        // (*((queue->history)+i))[0]='a';
+        // (*((queue->history)+i))[1]='\0';
     }
-    printf("even here\n");
+    // printf("even here\n");
 }
 
 void resize_queue(historyQueue *queue,int n){
@@ -211,10 +211,10 @@ void resize_queue(historyQueue *queue,int n){
     int i;
 
     if (n > queue->q_size){//upsize
-        for (i=0; i++;i <queue->q_size){
+        for (i=0; i <queue->q_size; i++){
             *(newHistory+i)=*(queue->history+(queue->head +i)%(queue->q_size));
         }
-        for (i=queue->q_size;i++;i<n){
+        for (i=queue->q_size;i<n;i++){
             *(newHistory+i)=malloc ((queue->commandSize)*sizeof(char *));
         }
         free(queue->history);
@@ -227,10 +227,10 @@ void resize_queue(historyQueue *queue,int n){
     }
 
     else if (n < queue->q_size){
-        for (i=0; i++;i <n){
+        for (i=0; i <n;i++){
            *(newHistory+i)=*(queue->history+(queue->head +i));
         }
-        for (i=n;i++;i<queue->q_size){
+        for (i=n;i<queue->q_size;i++){
             free(*(queue->history+(queue->head +i)%(queue->q_size)));    
         }
         free(queue->history);
