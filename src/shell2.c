@@ -10,7 +10,6 @@
 
 #define ARGMAX 50
 
-
 typedef struct {
         int q_size;
         int head;
@@ -40,6 +39,9 @@ void dequeue(historyQueue *queue,char *buf);
 void printQueue(historyQueue *queue,FILE *to);
 
 historyQueue *hist_q;
+char *PIPEOUT="/home/krysis/pipeout";
+char *HOME="/home/krysis/";
+
 int main(void){
 
     hist_q=init_queue(10);
@@ -152,12 +154,12 @@ void  parse(char *line)
         else if (strcmp(redirection,"|")==0){
             argv[redirect]=NULL;
             from=NULL;
-            to=fopen("pipeout","w");
+            to=fopen(PIPEOUT,"w");
             if (custom_execute(argv,from,to)==1){
                 execute(argv,from,to);
             }
             to=NULL;
-            from=fopen("pipeout","r");
+            from=fopen(PIPEOUT,"r");
             if (custom_execute(argv+redirect+1,from,to)==1){
                 execute(argv+redirect+1,from,to);
             }
@@ -240,7 +242,7 @@ void present_wd(char **argv,FILE *from, FILE *to){
 
 void change_dir(char **argv,FILE *from, FILE *to){
     if (argv[1]==NULL){
-        argv[1]="/home/krysis/";
+        argv[1]=HOME;
     }
     chdir(argv[1]);
 }
