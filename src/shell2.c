@@ -38,7 +38,7 @@ void printQueue(historyQueue *queue);
 int main(void){
 
     historyQueue q;
-    init_queue(&q,4);
+    init_queue(&q,10);
     //dynamically allocate memory instead
     char *line= (char *) malloc(1024 * sizeof(char));
     //array of strings?
@@ -55,8 +55,7 @@ int main(void){
         gets(line);
 
         //add to history
-        enqueue(&q, line);
-        
+      
         parse(&q,line); 
         //check if history? change this to check for builtin commands
         //!! and !n
@@ -121,26 +120,33 @@ void  parse(historyQueue *q, char *line)
         mybuf++;
     }
     i=0;
-    while(argv[i]!=NULL){
-        // printf("ARG %d. %s\n ",i+1,argv[i]);
-        i++;
+
+    if (argv[0]==NULL){
+        return;
     }
+    // while(argv[i]!=NULL){
+        // printf("ARG %d. %s\n ",i+1,argv[i]);
+    //     i++;
+    // }
 
     char *repeat=(char *)malloc((q->commandSize)*sizeof(char));
     char *src;
     int x;
 
+
     if(argv[0][0]=='!'){
         if ( strcmp(argv[0],"!!")==0){
             // printf("here\n");
-            q->tail= (q->tail -1)%(q->q_size);
+            // q->tail= (q->tail -1)%(q->q_size);
             strcpy(repeat,*(q->history+q->tail));        
             enqueue(q,repeat);
             return parse(q,repeat);
         }
         else {//assume that it will come correctly
             x=atoi(argv[0]+1);
+            printf("YO : %s %d\n",argv[0]+1,x);
             if(x!=0){
+                // q->tail= (q->tail -1)%(q->q_size);
                 src= *(q->history + (q->head + (x-1))%(q->q_size));
                 strcpy(repeat,src);
                 q->tail= (q->tail -1)%(q->q_size);
@@ -148,8 +154,10 @@ void  parse(historyQueue *q, char *line)
                 return parse(q,repeat);       
             }
         }
+        enqueue(q,line);
         return;
     }
+    enqueue(q,line);
 
     if (custom_execute(argv,q)==1){
         execute(argv);
@@ -320,7 +328,7 @@ void dequeue(historyQueue *queue,char *buf){
 
 
 void printQueue(historyQueue *queue){
-    int i;
+    int i=0;
     printf("History :\n");
     if (queue->tail==-1){
         return ;
@@ -329,7 +337,7 @@ void printQueue(historyQueue *queue){
     int start=1;
     while( start==1 ||(((queue->head +i)%(queue->q_size))!= (queue->tail +1)%(queue->q_size))){
             start=0;
-            printf("%d . %s\n",i,*(queue->history+(queue->head +i)%(queue->q_size)));
+            printf("%d . %s\n",i+1,*(queue->history+(queue->head +i)%(queue->q_size)));
             i++;
         }
 }
