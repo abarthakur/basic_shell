@@ -185,6 +185,22 @@ void  parse(historyQueue *q, char *line)
             to=fopen(argv[redirect+1],"w");
             from=NULL;
         }
+
+        else if (strcmp(redirection,"|")==0){
+            printf("wow \n");
+            argv[redirect]=NULL;
+            from=NULL;
+            to=fopen("pipeout","w");
+            if (custom_execute(argv,q,from,to)==1){
+                execute(argv,from,to);
+            }
+            to=NULL;
+            from=fopen("pipeout","r");
+            if (custom_execute(argv,q,from,to)==1){
+                execute(argv+redirect+1,from,to);
+            }
+            return;
+        }
     }    
     else {
         from=NULL;
