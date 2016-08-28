@@ -239,7 +239,18 @@ int custom_execute(char **argv,FILE *from,FILE *to){
 
 
 void history_cmd(char **argv,FILE *from, FILE *to){
-    printQueue(hist_q,to);
+    if (argv[1]==NULL){
+        printQueue(hist_q,to);
+        return;
+    }
+
+    if (strcmp(argv[1],"--history-size")==0){
+        int x=atoi(argv[2]);
+        if (x != 0){
+            hist_q = resize_queue(hist_q,x);
+        }
+    }
+
 }
 
 void present_wd(char **argv,FILE *from, FILE *to){
