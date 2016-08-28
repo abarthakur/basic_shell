@@ -216,9 +216,9 @@ void  execute(char **argv,FILE *from, FILE *to)
     pid_t  pid;
     int    status;
     //give later, store pids.
-    while(*(argv+i)!=NULL){
-        printf("ARG :%s\n",*(argv+i));
-    }
+    // while(*(argv+i)!=NULL){
+    //     printf("ARG :%s\n",*(argv+i));
+    // }
     printf("%p %p\n",from,to);
     pid = fork();
     if (pid==0){
