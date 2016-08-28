@@ -59,7 +59,8 @@ int main(void){
     USER=getenv("USER");
     PIPEOUT=(char *)malloc(200);
     strcpy(PIPEOUT,HOME);
-    strcat(PIPEOUT,"pipeout");
+    strcat(PIPEOUT,"/pipeout");
+    // printf("%s\n",PIPEOUT);
     dirChange=1;
     hist_q=init_queue(10);
     char *line= (char *) malloc(1024 * sizeof(char));
