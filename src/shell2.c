@@ -25,7 +25,7 @@ typedef void (*Command)(char **argv,historyQueue *q,FILE *from,FILE *to);
 
 void history_cmd(char **argv,historyQueue *q,FILE *from, FILE *to);
 void present_wd(char **argv,historyQueue *q,FILE *from, FILE *to);
-// void change_dir(char **argv,historyQueue *q,FILE *from, FILE *to);
+void change_dir(char **argv,historyQueue *q,FILE *from, FILE *to);
 
 
 int custom_execute(char **argv,historyQueue *q,FILE *from, FILE *to);
@@ -278,10 +278,10 @@ int custom_execute(char **argv,historyQueue *q,FILE *from,FILE *to){
     if (to==NULL){
         to =stdout;
     }
-    const char *custom_commands[]={"history","pwd"};//,"cd"};
+    const char *custom_commands[]={"history","pwd","cd"};
     // Command *custom = {NULL. NULL, NULL , NULL, NULL, NULL};
-    Command custom[]= {history_cmd, present_wd};//,change_dir};
-    int cust_no=2;
+    Command custom[]= {history_cmd, present_wd,change_dir};
+    int cust_no=3;
     int j=0;
     // return 1;//comment out later
     for (j=0;j<cust_no;j++){
@@ -289,10 +289,11 @@ int custom_execute(char **argv,historyQueue *q,FILE *from,FILE *to){
             custom[j](argv,q,from,to);       
             // fclose(from);
             // fclose(to);
+            printf("found\n");
             return 0;
         }
     }
-
+    return 1;
     
 
 }
@@ -308,9 +309,12 @@ void present_wd(char **argv,historyQueue *q,FILE *from, FILE *to){
     fflush(to);
 }
 
-// void change_dir(char **argv,historyQueue *q,FILE *from, FILE *to){
-//     chdir(argv[1]);
-// }
+void change_dir(char **argv,historyQueue *q,FILE *from, FILE *to){
+    if (argv[1]==NULL){
+        argv[1]="/home/krysis/";
+    }
+    chdir(argv[1]);
+}
 
 
 
