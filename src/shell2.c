@@ -24,6 +24,10 @@ typedef struct {
 typedef void (*Command)(char **argv,historyQueue *q,FILE *from,FILE *to);
 
 void history_cmd(char **argv,historyQueue *q,FILE *from, FILE *to);
+void present_wd(char **argv,historyQueue *q,FILE *from, FILE *to);
+// void change_dir(char **argv,historyQueue *q,FILE *from, FILE *to);
+
+
 int custom_execute(char **argv,historyQueue *q,FILE *from, FILE *to);
 void  execute(char **argv,FILE *from, FILE *to);
 void  parse(historyQueue *q, char *line);
@@ -274,10 +278,10 @@ int custom_execute(char **argv,historyQueue *q,FILE *from,FILE *to){
     if (to==NULL){
         to =stdout;
     }
-    const char *custom_commands[]={"history"};
+    const char *custom_commands[]={"history","pwd"};//,"cd"};
     // Command *custom = {NULL. NULL, NULL , NULL, NULL, NULL};
-    Command custom[]= {history_cmd};
-    int cust_no=1;
+    Command custom[]= {history_cmd, present_wd};//,change_dir};
+    int cust_no=2;
     int j=0;
     // return 1;//comment out later
     for (j=0;j<cust_no;j++){
@@ -298,6 +302,15 @@ void history_cmd(char **argv,historyQueue *q,FILE *from, FILE *to){
     printQueue(q,to);
 }
 
+void present_wd(char **argv,historyQueue *q,FILE *from, FILE *to){
+    char *pwd=(char *)get_current_dir_name();
+    fprintf(to, "%s\n",pwd );
+    fflush(to);
+}
+
+// void change_dir(char **argv,historyQueue *q,FILE *from, FILE *to){
+//     chdir(argv[1]);
+// }
 
 
 
