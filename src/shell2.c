@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <pwd.h>
 #include <ctype.h>
 
 #define ARGMAX 50
@@ -38,18 +39,38 @@ void enqueue(historyQueue *queue, char *newCommand);
 void dequeue(historyQueue *queue,char *buf);
 void printQueue(historyQueue *queue,FILE *to);
 
+
+// void shortPWD(void);
+
 historyQueue *hist_q;
-char *PIPEOUT="/home/krysis/pipeout";
-char *HOME="/home/krysis/";
+const char *PIPEOUT;
+const char *HOME;
+const char *USER;
+const char *PWD;
+char *shorterPWD;
+int dirChange;
 
 int main(void){
 
+    if ((HOME = getenv("HOME")) == NULL) {
+       HOME = getpwuid(getuid())->pw_dir;
+    }
+    USER=getenv("USER");
+    PIPEOUT=(char *)malloc(200);
+    strcpy(PIPEOUT,HOME);
+    strcat(PIPEOUT,"pipeout");
+    dirChange=1;
     hist_q=init_queue(10);
     char *line= (char *) malloc(1024 * sizeof(char));
     //introduce "environment"
 
     while(1){
-        printf("\n>>$:");
+        if(dirChange==1){
+            dirChange=0;
+            PWD = (const char *)get_current_dir_name();
+            // shortPWD();
+        }
+        printf("\n%s:%s$:",USER,PWD);
         gets(line);
 
         if (parse(line)==-1){
@@ -61,6 +82,22 @@ int main(void){
 }
 
 
+void shortPWD(){
+    // free(shorterPWD);
+    shorterPWD= (char *)malloc(strlen(PWD));
+    int i =0;
+    while (*(HOME+i)==*(PWD+i)){
+        i++;
+    }
+    if (i==strlen(HOME)){
+        shorterPWD="~/";
+        strcat(shorterPWD,PWD+i);
+    }
+    else{
+        strcpy(shorterPWD,PWD);
+    }
+
+}
 
 int  parse(char *line)
 {   
@@ -260,6 +297,7 @@ void present_wd(char **argv,FILE *from, FILE *to){
 }
 
 void change_dir(char **argv,FILE *from, FILE *to){
+    dirChange=1;
     if (argv[1]==NULL){
         argv[1]=HOME;
     }
