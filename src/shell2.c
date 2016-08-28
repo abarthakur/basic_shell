@@ -21,9 +21,9 @@ typedef struct {
     } historyQueue;
 
 
-typedef void (*Command)(char **argv,historyQueue *q);
+typedef void (*Command)(char **argv,historyQueue *q,FILE *from,FILE *to);
 
-void history_cmd(char **argv,historyQueue *q);
+void history_cmd(char **argv,historyQueue *q,FILE *from, FILE *to);
 int custom_execute(char **argv,historyQueue *q,FILE *from, FILE *to);
 void  execute(char **argv,FILE *from, FILE *to);
 void  parse(historyQueue *q, char *line);
@@ -32,8 +32,7 @@ void init_queue(historyQueue *queue, int n);
 void resize_queue(historyQueue *queue,int n);
 void enqueue(historyQueue *queue, char *newCommand);
 void dequeue(historyQueue *queue,char *buf);
-void printQueue(historyQueue *queue);
-
+void printQueue(historyQueue *queue,FILE *to);
 //handle errors, segmentation faults etc.
 int main(void){
 
@@ -196,7 +195,7 @@ void  parse(historyQueue *q, char *line)
             }
             to=NULL;
             from=fopen("pipeout","r");
-            if (custom_execute(argv,q,from,to)==1){
+            if (custom_execute(argv+redirect+1,q,from,to)==1){
                 execute(argv+redirect+1,from,to);
             }
             return;
@@ -217,9 +216,9 @@ void  execute(char **argv,FILE *from, FILE *to)
     pid_t  pid;
     int    status;
     //give later, store pids.
-    // while(*(argv+i)!=NULL){
-    //     printf("ARG :%s\n",*(argv+i));
-    // }
+    while(*(argv+i)!=NULL){
+        printf("ARG :%s\n",*(argv+i));
+    }
     printf("%p %p\n",from,to);
     pid = fork();
     if (pid==0){
@@ -269,6 +268,12 @@ void  execute(char **argv,FILE *from, FILE *to)
 
 int custom_execute(char **argv,historyQueue *q,FILE *from,FILE *to){
     // char **custom_commands={"pwd","cd","jobs","bg","history"};
+    if (from==NULL){
+        from =stdin;
+    }
+    if (to==NULL){
+        to =stdout;
+    }
     const char *custom_commands[]={"history"};
     // Command *custom = {NULL. NULL, NULL , NULL, NULL, NULL};
     Command custom[]= {history_cmd};
@@ -277,17 +282,20 @@ int custom_execute(char **argv,historyQueue *q,FILE *from,FILE *to){
     // return 1;//comment out later
     for (j=0;j<cust_no;j++){
         if (strcmp(argv[0],custom_commands[j])==0){
-            custom[j](argv,q);       
+            custom[j](argv,q,from,to);       
+            // fclose(from);
+            // fclose(to);
             return 0;
         }
     }
+
     
 
 }
 
 
-void history_cmd(char **argv,historyQueue *q){
-    printQueue(q);
+void history_cmd(char **argv,historyQueue *q,FILE *from, FILE *to){
+    printQueue(q,to);
 }
 
 
@@ -379,9 +387,9 @@ void dequeue(historyQueue *queue,char *buf){
 }
 
 
-void printQueue(historyQueue *queue){
+void printQueue(historyQueue *queue,FILE *to){
     int i=0;
-    printf("History :\n");
+    fprintf(to,"History :\n");
     if (queue->tail==-1){
         return ;
     }
@@ -389,11 +397,9 @@ void printQueue(historyQueue *queue){
     int start=1;
     while( start==1 ||(((queue->head +i)%(queue->q_size))!= (queue->tail +1)%(queue->q_size))){
             start=0;
-            printf("%d . %s\n",i+1,*(queue->history+(queue->head +i)%(queue->q_size)));
+            fprintf(to,"%d . %s\n",i+1,*(queue->history+(queue->head +i)%(queue->q_size)));
             i++;
         }
+    fflush(to);
+
 }
-
-
-
-
