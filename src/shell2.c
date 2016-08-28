@@ -22,27 +22,27 @@ typedef struct {
     } historyQueue;
 
 
-typedef void (*Command)(char **argv,historyQueue *q,FILE *from,FILE *to);
+typedef void (*Command)(char **argv,FILE *from,FILE *to);
 
-void history_cmd(char **argv,historyQueue *q,FILE *from, FILE *to);
-void present_wd(char **argv,historyQueue *q,FILE *from, FILE *to);
-void change_dir(char **argv,historyQueue *q,FILE *from, FILE *to);
+void history_cmd(char **argv,FILE *from, FILE *to);
+void present_wd(char **argv,FILE *from, FILE *to);
+void change_dir(char **argv,FILE *from, FILE *to);
 
 
-int custom_execute(char **argv,historyQueue *q,FILE *from, FILE *to);
+int custom_execute(char **argv,FILE *from, FILE *to);
 void  execute(char **argv,FILE *from, FILE *to);
-void  parse(historyQueue *q, char *line);
+void  parse( char *line);
 
-void init_queue(historyQueue *queue, int n);
+historyQueue *init_queue(int n);
 historyQueue *resize_queue(historyQueue *queue,int n);
 void enqueue(historyQueue *queue, char *newCommand);
 void dequeue(historyQueue *queue,char *buf);
 void printQueue(historyQueue *queue,FILE *to);
 
+historyQueue *hist_q;
 int main(void){
 
-    historyQueue q;
-    init_queue(&q,10);
+    hist_q=init_queue(10);
     char *line= (char *) malloc(1024 * sizeof(char));
     //introduce "environment"
 
@@ -50,14 +50,14 @@ int main(void){
         printf("\n>>$:");
         gets(line);
 
-        parse(&q,line); 
+        parse(line); 
     }
     return 0;
 }
 
 
 
-void  parse(historyQueue *q, char *line)
+void  parse(char *line)
 {   
     
     int redirect=0, i,count=0;
@@ -102,24 +102,24 @@ void  parse(historyQueue *q, char *line)
         return;
     }
 
-    char *repeat=(char *)malloc((q->commandSize)*sizeof(char));
+    char *repeat=(char *)malloc((hist_q->commandSize)*sizeof(char));
     char *src;
     int x;
 
 
     if(argv[0][0]=='!'){
         if ( strcmp(argv[0],"!!")==0){
-            strcpy(repeat,*(q->history+q->tail));        
-            enqueue(q,repeat);
-            return parse(q,repeat);
+            strcpy(repeat,*(hist_q->history+hist_q->tail));        
+            enqueue(hist_q,repeat);
+            return parse(repeat);
         }
         else {
             x=atoi(argv[0]+1);
-            if(x<=q->no_elem && x>0){
-                src= *(q->history + (q->head + (x-1))%(q->q_size));
+            if(x<=hist_q->no_elem && x>0){
+                src= *(hist_q->history + (hist_q->head + (x-1))%(hist_q->q_size));
                 strcpy(repeat,src);
-                enqueue(q,repeat);
-                return parse(q,repeat);       
+                enqueue(hist_q,repeat);
+                return parse(repeat);       
             }
             else{
                 printf("Invalid value of n. Use command !n to execute nth instruction in history.\n");
@@ -127,12 +127,12 @@ void  parse(historyQueue *q, char *line)
             }
 
         }
-        enqueue(q,line);
+        enqueue(hist_q,line);
         return;
     }
 
     char *redirection;
-    enqueue(q,line);
+    enqueue(hist_q,line);
     FILE *to;
     FILE *from;
     if (redirect!=0){
@@ -153,12 +153,12 @@ void  parse(historyQueue *q, char *line)
             argv[redirect]=NULL;
             from=NULL;
             to=fopen("pipeout","w");
-            if (custom_execute(argv,q,from,to)==1){
+            if (custom_execute(argv,from,to)==1){
                 execute(argv,from,to);
             }
             to=NULL;
             from=fopen("pipeout","r");
-            if (custom_execute(argv+redirect+1,q,from,to)==1){
+            if (custom_execute(argv+redirect+1,from,to)==1){
                 execute(argv+redirect+1,from,to);
             }
             return;
@@ -169,7 +169,7 @@ void  parse(historyQueue *q, char *line)
         to=NULL;
     }
     
-    if (custom_execute(argv,q,from,to)==1){
+    if (custom_execute(argv,from,to)==1){
         execute(argv,from,to);
     }
 }
@@ -205,7 +205,7 @@ void  execute(char **argv,FILE *from, FILE *to)
 
 
 
-int custom_execute(char **argv,historyQueue *q,FILE *from,FILE *to){
+int custom_execute(char **argv,FILE *from,FILE *to){
     if (from==NULL){
         from =stdin;
     }
@@ -218,7 +218,7 @@ int custom_execute(char **argv,historyQueue *q,FILE *from,FILE *to){
     int j=0;
     for (j=0;j<cust_no;j++){
         if (strcmp(argv[0],custom_commands[j])==0){
-            custom[j](argv,q,from,to);       
+            custom[j](argv,from,to);       
             return 0;
         }
     }
@@ -228,17 +228,17 @@ int custom_execute(char **argv,historyQueue *q,FILE *from,FILE *to){
 }
 
 
-void history_cmd(char **argv,historyQueue *q,FILE *from, FILE *to){
-    printQueue(q,to);
+void history_cmd(char **argv,FILE *from, FILE *to){
+    printQueue(hist_q,to);
 }
 
-void present_wd(char **argv,historyQueue *q,FILE *from, FILE *to){
+void present_wd(char **argv,FILE *from, FILE *to){
     char *pwd=(char *)get_current_dir_name();
     fprintf(to, "%s\n",pwd );
     fflush(to);
 }
 
-void change_dir(char **argv,historyQueue *q,FILE *from, FILE *to){
+void change_dir(char **argv,FILE *from, FILE *to){
     if (argv[1]==NULL){
         argv[1]="/home/krysis/";
     }
@@ -247,8 +247,9 @@ void change_dir(char **argv,historyQueue *q,FILE *from, FILE *to){
 
 
 
-void init_queue(historyQueue *queue, int n){
+historyQueue *init_queue(int n){
     int i=0;
+    historyQueue *queue= (historyQueue *)malloc(sizeof(historyQueue));
     queue->q_size=n;
     queue->head=0;
     queue->tail=-1;
@@ -260,12 +261,14 @@ void init_queue(historyQueue *queue, int n){
         (*((queue->history)+i))[0]='\0';
 
     }
+    return queue;
 }
 
 historyQueue *resize_queue(historyQueue *queue,int n){
-    historyQueue *newQueue=(historyQueue *)malloc(sizeof(historyQueue));
-    init_queue(newQueue,n);
+    historyQueue *newQueue;
+    newQueue=init_queue(n);
     if (queue->tail==-1){
+        free (queue);
         return newQueue;
     }
     int start=1,i=0;
@@ -274,7 +277,7 @@ historyQueue *resize_queue(historyQueue *queue,int n){
             enqueue(newQueue,*(queue->history+(queue->head +i)%(queue->q_size)));
             i++;
         } 
-
+    free(queue);
     return newQueue;
 }
 
