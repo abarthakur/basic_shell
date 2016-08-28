@@ -24,8 +24,8 @@ typedef struct {
 typedef void (*Command)(char **argv,historyQueue *q);
 
 void history_cmd(char **argv,historyQueue *q);
-int custom_execute(char **argv,historyQueue *q);
-void  execute(char **argv);
+int custom_execute(char **argv,historyQueue *q,FILE *from, FILE *to);
+void  execute(char **argv,FILE *from, FILE *to);
 void  parse(historyQueue *q, char *line);
 
 void init_queue(historyQueue *queue, int n);
@@ -89,6 +89,7 @@ void  parse(historyQueue *q, char *line)
     // at the very lowest level , history? piping?
     //what does a parser even do?
     //tokenization?
+    int redirect=0;
     int i,count=0;
     char *mybuf = (char *)malloc(1024*sizeof(char));
     strcpy(mybuf,line);
@@ -104,10 +105,15 @@ void  parse(historyQueue *q, char *line)
             start=0;
             *(mybuf) = '\0';     
         }
-        else if (*(mybuf) == '>' || *(mybuf)== '|' ){
-            // printf("2\n");
+        else if (*(mybuf) == '>' || *(mybuf) == '<' ||*(mybuf) == '|' ){//so far needs to be space separated?!
+            redirect =count;
+            argv[count]=(char *)malloc(2*sizeof(char));
+            argv[count][0]=*mybuf;
+            argv[count][1]='\0';
+            count++;
             start==0;
         }
+        
         else{
             // printf("3\n");
             if (start ==0){
@@ -120,14 +126,16 @@ void  parse(historyQueue *q, char *line)
         mybuf++;
     }
     i=0;
+    //list of args terminated by null pointer not \0
+    argv[count]=NULL;
 
     if (argv[0]==NULL){
         return;
     }
-    // while(argv[i]!=NULL){
-        // printf("ARG %d. %s\n ",i+1,argv[i]);
-    //     i++;
-    // }
+    while(argv[i]!=NULL){
+        printf("ARG %d. %s\n ",i+1,argv[i]);
+        i++;
+    }
 
     char *repeat=(char *)malloc((q->commandSize)*sizeof(char));
     char *src;
@@ -157,14 +165,93 @@ void  parse(historyQueue *q, char *line)
         enqueue(q,line);
         return;
     }
+    char *redirection;
     enqueue(q,line);
+    FILE *to;
+    FILE *from;
+    printf("REDIRECT VALUE : %d\n",redirect);
+    if (redirect!=0){
+        redirection=argv[redirect];
+        if (strcmp(redirection,"<")==0){
+            printf("there \n");
+            argv[redirect]=NULL;
+            from=fopen(argv[redirect+1],"r");
+            to=NULL;
+        }
 
-    if (custom_execute(argv,q)==1){
-        execute(argv);
+        else if (strcmp(redirection,">")==0){
+            printf("here : %s \n",argv[redirect+1]);
+            argv[redirect]=NULL;
+            to=fopen(argv[redirect+1],"w");
+            from=NULL;
+        }
+    }    
+    else {
+        from=NULL;
+        to=NULL;
+    }
+    
+    if (custom_execute(argv,q,from,to)==1){
+        execute(argv,from,to);
     }
 }
 
-int custom_execute(char **argv,historyQueue *q){
+void  execute(char **argv,FILE *from, FILE *to)
+{
+    pid_t  pid;
+    int    status;
+    //give later, store pids.
+    // while(*(argv+i)!=NULL){
+    //     printf("ARG :%s\n",*(argv+i));
+    // }
+    printf("%p %p\n",from,to);
+    pid = fork();
+    if (pid==0){
+        if (from !=NULL){
+            dup2(fileno(from), fileno(stdin));    
+            close(fileno(from));
+        }
+        if (to !=NULL){
+            dup2(fileno(to), fileno(stdout));    
+            close(fileno(to));
+        }
+        int i=0;
+        while(argv[i]!=NULL){
+            printf("EXARG %d. %s\n ",i+1,argv[i]);
+            i++;
+        }
+        if (execvp(argv[0], argv) < 0){     
+            printf("ERROR: -1\n");
+            return;
+        }
+    }
+    else{
+        while (wait(&status) != pid);
+    }
+    
+    // if (pid < 0) 
+    // {     
+    //     printf("ERROR:-2\n");
+    //     return;
+    // }
+    // else if (pid == 0)
+    // {          
+    //     if (execvp(argv[0], argv) < 0)//execvp?
+    //     {     
+    //         printf("ERROR: -1\n");
+    //         return;
+    //     }
+    // }
+    // else
+    // {                                 
+    //     while (wait(&status) != pid);
+    // }
+}          
+
+
+
+
+int custom_execute(char **argv,historyQueue *q,FILE *from,FILE *to){
     // char **custom_commands={"pwd","cd","jobs","bg","history"};
     const char *custom_commands[]={"history"};
     // Command *custom = {NULL. NULL, NULL , NULL, NULL, NULL};
@@ -186,57 +273,6 @@ int custom_execute(char **argv,historyQueue *q){
 void history_cmd(char **argv,historyQueue *q){
     printQueue(q);
 }
-
-
-void  execute(char **argv)
-{
-    pid_t  pid;
-    int    status;
-    //give later, store pids.
-    // while(*(argv+i)!=NULL){
-    //     printf("ARG :%s\n",*(argv+i));
-    // }
-    pid = fork();
-    if (pid < 0) 
-    {     
-        printf("ERROR:-2\n");
-        return;
-    }
-    else if (pid == 0)
-    {          
-        if (execvp(argv[0], argv) < 0)//execvp?
-        {     
-            printf("ERROR: -1\n");
-            return;
-        }
-    }
-    else
-    {                                 
-        while (wait(&status) != pid);
-    }
-}          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
