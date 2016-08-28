@@ -40,7 +40,7 @@ void dequeue(historyQueue *queue,char *buf);
 void printQueue(historyQueue *queue,FILE *to);
 
 
-// void shortPWD(void);
+void shortPWD(void);
 
 historyQueue *hist_q;
 const char *PIPEOUT;
@@ -52,6 +52,7 @@ int dirChange;
 
 int main(void){
 
+    shorterPWD=NULL;
     if ((HOME = getenv("HOME")) == NULL) {
        HOME = getpwuid(getuid())->pw_dir;
     }
@@ -68,9 +69,9 @@ int main(void){
         if(dirChange==1){
             dirChange=0;
             PWD = (const char *)get_current_dir_name();
-            // shortPWD();
+            shortPWD();
         }
-        printf("\n%s:%s$:",USER,PWD);
+        printf("\n%s:%s$:",USER,shorterPWD);
         gets(line);
 
         if (parse(line)==-1){
@@ -83,21 +84,23 @@ int main(void){
 
 
 void shortPWD(){
-    // free(shorterPWD);
-    shorterPWD= (char *)malloc(strlen(PWD));
+    free(shorterPWD);
+    shorterPWD= (char *)malloc(strlen(PWD)*sizeof(char));
+    // printf("here\n");
     int i =0;
-    while (*(HOME+i)==*(PWD+i)){
+    while (*(HOME+i)==*(PWD+i) && i <strlen(HOME)){
         i++;
     }
     if (i==strlen(HOME)){
-        shorterPWD="~/";
+        shorterPWD[0]='~';
+        shorterPWD[1]='\0';
         strcat(shorterPWD,PWD+i);
     }
     else{
         strcpy(shorterPWD,PWD);
     }
 
-}
+}   
 
 int  parse(char *line)
 {   
