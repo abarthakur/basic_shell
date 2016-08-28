@@ -16,6 +16,7 @@ typedef struct {
         int head;
         int tail;
         int commandSize;
+        int no_elem;
         char **history;
 
     } historyQueue;
@@ -114,13 +115,17 @@ void  parse(historyQueue *q, char *line)
         }
         else {
             x=atoi(argv[0]+1);
-            if(x!=0){
+            if(x<=q->no_elem && x>0){
                 src= *(q->history + (q->head + (x-1))%(q->q_size));
                 strcpy(repeat,src);
-                q->tail= (q->tail -1)%(q->q_size);
                 enqueue(q,repeat);
                 return parse(q,repeat);       
             }
+            else{
+                printf("Invalid value of n. Use command !n to execute nth instruction in history.\n");
+                return ;
+            }
+
         }
         enqueue(q,line);
         return;
@@ -248,6 +253,7 @@ void init_queue(historyQueue *queue, int n){
     queue->head=0;
     queue->tail=-1;
     queue->commandSize=100;
+    queue->no_elem=0;
     queue->history=(char **) malloc(n*sizeof(char *));
     for (i=0;i<n;i++){
         *((queue->history)+i)=(char *)malloc ((queue->commandSize)*sizeof(char));
@@ -280,6 +286,7 @@ void enqueue(historyQueue *queue, char *newCommand){
     //maxsize check here
     char *dest= *(queue->history + queue->tail);
     strcpy(dest,newCommand);
+    queue->no_elem++;
 }
 
 void dequeue(historyQueue *queue,char *buf){
@@ -287,6 +294,7 @@ void dequeue(historyQueue *queue,char *buf){
         strcpy(buf,*(queue->history + queue->head));
     }
     queue->head=(queue->head+1)%(queue->q_size);
+    queue->no_elem--;
 }
 
 
