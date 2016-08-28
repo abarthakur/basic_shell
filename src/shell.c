@@ -7,12 +7,18 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-void  execute(char **argv);
+void  execute(char **argv, int fd);
 void  parse(char *line, char **argv);
     
 int  main(void)
 {
-     char  line[1024];             
+     char  line[1024]; 
+    // printf("Stdout is descriptor %d\n", fileno(stdout));
+    // freopen("./newstdout", "w", stdout);
+    // printf("Stdout is now /tmp/newstdout and hopefully still fd %d\n",fileno(stdout));
+    // freopen("/dev/stdout", "w", stdout);
+    // printf("Now we put it back, hopefully its still fd %d\n",fileno(stdout));
+     FILE *f = fopen("./newstdout","w");
      char  *argv[64];              
      char *hist[10];
      int count=0, size, i;
@@ -48,9 +54,10 @@ int  main(void)
 
           if (strcmp(argv[0], "exit") == 0)  
                break; //return from shell to main          
-          execute(argv);          
+          execute(argv,fileno(f));          
      }
 return 0;
+fflush(stdout);
 }
 
 void  parse(char *line, char **argv)
@@ -67,27 +74,42 @@ void  parse(char *line, char **argv)
 }
 
 
-void  execute(char **argv)
+void  execute(char **argv, int fd)
 {
      pid_t  pid;
      int    status;
+
+
      pid = fork();
-     if (pid < 0) 
-    {     
-          printf("ERROR:-2\n");
-          return;
+
+     // if (argv[0]=="ls"){
+        // freopen("./newstdout", "w", stdout);
+    if (pid==0){
+      dup2(fd, fileno(stdout));
+      close(fd);
+      execvp(argv[0], argv);
     }
-     else if (pid == 0)
-     {          
-          if (execvp(argv[0], argv) < 0)
-    {     
-               printf("ERROR: -1\n");
-               return;
-          }
-     }
-     else
-     {                                 
-          while (wait(&status) != pid);
-     }
+    return;
+     // close(fd);
+     // }
+    //  if (pid < 0) 
+    // {     
+    //       printf("ERROR:-2\n");
+    //       return;
+    // }
+    //  else if (pid == 0)
+    //  {          
+    //       if (execvp(argv[0], argv) < 0)
+    // {     
+    //            printf("ERROR: -1\n");
+    //            return;
+    //       }
+    //  }
+    //  else
+    //  {                                 
+    //       while (wait(&status) != pid);
+    //  }
+
+
 }          
 
