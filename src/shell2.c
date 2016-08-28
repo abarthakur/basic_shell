@@ -30,7 +30,7 @@ void change_dir(char **argv,FILE *from, FILE *to);
 
 int custom_execute(char **argv,FILE *from, FILE *to);
 void  execute(char **argv,FILE *from, FILE *to);
-void  parse( char *line);
+int  parse( char *line);
 
 historyQueue *init_queue(int n);
 historyQueue *resize_queue(historyQueue *queue,int n);
@@ -52,14 +52,17 @@ int main(void){
         printf("\n>>$:");
         gets(line);
 
-        parse(line); 
+        if (parse(line)==-1){
+            //cleanup
+            break;
+        }
     }
     return 0;
 }
 
 
 
-void  parse(char *line)
+int  parse(char *line)
 {   
     
     int redirect=0, i,count=0;
@@ -101,7 +104,12 @@ void  parse(char *line)
     argv[count]=NULL;
 
     if (argv[0]==NULL){
-        return;
+        return 1;
+    }
+
+    if (strcmp(argv[0],"exit")==0){
+        printf("Shell will now exit\n");
+        return -1;
     }
 
     char *repeat=(char *)malloc((hist_q->commandSize)*sizeof(char));
@@ -125,12 +133,12 @@ void  parse(char *line)
             }
             else{
                 printf("Invalid value of n. Use command !n to execute nth instruction in history.\n");
-                return ;
+                return 1;
             }
 
         }
         enqueue(hist_q,line);
-        return;
+        return 1;
     }
 
     char *redirection;
@@ -163,7 +171,7 @@ void  parse(char *line)
             if (custom_execute(argv+redirect+1,from,to)==1){
                 execute(argv+redirect+1,from,to);
             }
-            return;
+            return 1;
         }
     }    
     else {
