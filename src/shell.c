@@ -80,6 +80,8 @@ int main(void){
 
         if (parse(line)==-1){
             //cleanup
+            free(PWD);
+            free(shorterPWD);
             break;
         }
     }
@@ -248,6 +250,7 @@ void  execute(char **argv,FILE *from, FILE *to)
         }
         if (execvp(argv[0], argv) < 0){     
             printf("ERROR: -1\n");
+            exit(0);
             return;
         }
     }
