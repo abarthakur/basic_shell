@@ -43,10 +43,10 @@ void printQueue(historyQueue *queue,FILE *to);
 void shortPWD(void);
 
 historyQueue *hist_q;
-const char *PIPEOUT;
-const char *HOME;
-const char *USER;
-const char *PWD;
+char *PIPEOUT;
+char *HOME;
+char *USER;
+char *PWD;
 char *shorterPWD;
 int dirChange;
 
@@ -66,10 +66,13 @@ int main(void){
     char *line= (char *) malloc(1024 * sizeof(char));
     //introduce "environment"
 
+    PWD=(char *)malloc(300);
+    shorterPWD=(char *)malloc(300);
+
     while(1){
         if(dirChange==1){
             dirChange=0;
-            PWD = (const char *)get_current_dir_name();
+            getcwd(PWD,300*sizeof(char));
             shortPWD();
         }
         printf("\n%s:%s$:",USER,shorterPWD);
@@ -295,9 +298,11 @@ void history_cmd(char **argv,FILE *from, FILE *to){
 }
 
 void present_wd(char **argv,FILE *from, FILE *to){
-    char *pwd=(char *)get_current_dir_name();
+    char *pwd = (char *)malloc(300*sizeof(char));
+    getcwd(pwd,300*sizeof(char));
     fprintf(to, "%s\n",pwd );
     fflush(to);
+    free(pwd);
 }
 
 void change_dir(char **argv,FILE *from, FILE *to){
